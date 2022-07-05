@@ -1,0 +1,316 @@
+---
+title: "base R functions compared to purrr and dplyr"
+format:
+  html:
+    code-link: true
+    theme: flatly
+    toc: true
+execute:
+  warning: false
+---
+
+```{r}
+#| include: false
+options(max.print = 100)
+```
+
+## The apply family of functions
+
+### `apply()`
+
+`apply()` applies a function to matrix rows for `MARGIN = 1` or matrix columns for `MARGIN = 2`.
+
+```{r}
+(A <- matrix(1:9, nrow = 3))
+
+apply(A, MARGIN = 1, FUN = min)
+apply(A, MARGIN = 2, FUN = min)
+
+apply(A, MARGIN = 1, FUN = max, simplify = FALSE)
+apply(A, MARGIN = 2, FUN = max, simplify = FALSE)
+```
+
+### `lapply()`
+
+`lapply()` applies a function to each element of a vector and returns a list.
+
+```{r}
+lapply(1:3, runif)
+purrr::map(1:3, runif)
+
+lapply(letters[1:3], toupper)
+purrr::map(letters[1:3], toupper)
+```
+
+### `sapply()`
+
+`sapply()` tries to simplify the result of lapply().
+
+```{r}
+sapply(letters[1:3], toupper)
+purrr::map_chr(rlang::set_names(letters[1:3]), toupper)
+
+sapply(letters[1:3], toupper, USE.NAMES = FALSE)
+purrr::map_chr(letters[1:3], toupper)
+```
+
+### `vapply()`
+
+`vapply()` takes input how to simplify the result of `lapply()`.
+
+```{r}
+vapply(letters[1:3], toupper, FUN.VALUE = character(1))
+purrr::map_chr(rlang::set_names(letters[1:3]), toupper)
+
+vapply(letters[1:3], toupper, FUN.VALUE = character(1), USE.NAMES = FALSE)
+purrr::map_chr(letters[1:3], toupper)
+```
+
+### `mapply()`
+
+`mapply()` applies a function with multiple parameters to each element of a list of vectors in parallel.
+
+```{r}
+mapply(runif, 1:3, 0:2, 1:3)
+purrr::pmap(list(1:3, 0:2, 1:3), runif)
+
+mapply(runif, min = 0:2, max = 1:3, n = 1:3)
+purrr::pmap(list(min = 0:2, max = 1:3, n = 1:3), runif)
+```
+
+### `tapply()`
+
+`tapply()` groups a vector according to a factor and applies a function to each group and tries to simplify the result. Also see examples for `aggregate()`.
+
+```{r}
+tapply(state.x77[, "Population"], state.region, sum)
+tapply(state.x77[, "Population"], state.region, sum, simplify = FALSE)
+```
+
+### Overview of functions and their arguments
+
+```{r}
+#| echo: false
+funs <- list("apply", "lapply", "sapply", "vapply", "mapply", "tapply")
+args <- setNames(lapply(funs, function(x) names(formals(x))), funs)
+
+tibble::tibble(f = c("apply", "lapply", "sapply", "vapply", "mapply", "tapply")) |> 
+  dplyr::rowwise() |> 
+  dplyr::mutate(args = list(names(formals(f)))) |> 
+  tidyr::unnest_wider(args) |> 
+  knitr::kable()
+```
+
+None of the apply functions are generic.
+
+```{r}
+setNames(sapply(funs, isGeneric), funs)
+```
+
+## Data frame manipulation functions
+
+### `aggregate()`
+
+`aggregate()` combines `dplyr::group_by()` and `dplyr::summarise()`.
+
+```{r}
+(df <- state.x77 |>
+  as.data.frame() |>
+  transform(Region = state.region))
+
+(tbl <- state.x77 |>
+  tibble::as_tibble(rownames = "State") |>
+  dplyr::mutate(Region = as.character(state.region)))
+```
+
+If the first argument is a data frame, the grouping can not have bare column names. Passing the whole data frame applies the function to every column.
+
+```{r}
+aggregate(df[, -9], by = list(df$Region), FUN = mean)
+
+tbl |>
+  dplyr::group_by(Region) |>
+  dplyr::summarise(dplyr::across(-State, mean))
+```
+
+Aggregating individual columns is done by explicitly referencing the column. This can also be expressed through a formula which can use bare names.
+
+```{r}
+aggregate(df$Population, by = list(df$Region), FUN = sum)
+
+aggregate(Population ~ Region, data = df, FUN = sum)
+
+tbl |>
+  dplyr::group_by(Region) |>
+  dplyr::summarise(Population = sum(Population))
+```
+
+Multiple groupings are also possible, including groups created on the fly.
+
+```{r}
+aggregate(df$Population, by = list(df$Region, df$Income > 4500), FUN = sum)
+
+aggregate(Population ~ Region + factor(Income > 4500), data = df, FUN = sum)
+
+tbl |>
+  dplyr::group_by(Region, Income > 4500) |>
+  dplyr::summarise(Population = sum(Population))
+```
+
+Multiple functions can be applied by passing a lambda combining them. A list of functions is not possible.
+
+```{r}
+aggregate(df$Population, by = list(df$Region), FUN = function(x) c(sum(x), mean(x)))
+
+aggregate(Population ~ Region, data = df, FUN = function(x) c(sum(x), mean(x)))
+
+tbl |>
+  dplyr::group_by(Region) |>
+  dplyr::summarise(dplyr::across(Population, list(sum = sum, mean = mean)))
+
+tbl |>
+  dplyr::group_by(Region) |>
+  dplyr::summarise(Population_sum = sum(Population), Population_mean = mean(Population))
+```
+
+### `by()`
+
+`by()` works similarly to the data frame version of `aggregate()`, i.e. no bare names. However, the function is applied to the whole data frame, not columns individually. Therefore it behaves similar to `tapply()` for vectors.
+
+```{r}
+by(
+  df[, c("Income", "Life.Exp")],
+  INDICES = df$Region,
+  FUN = function(x) sapply(x, mean)
+)
+
+aggregate(
+  df[ , c("Income", "Life.Exp")],
+  by = list(df$Region),
+  FUN = mean
+)
+
+tbl |>
+  dplyr::group_by(Region) |>
+  dplyr::summarise(dplyr::across(c(Income, `Life Exp`), mean))
+
+tbl |>
+  dplyr::group_by(Region) |>
+  dplyr::summarise(Income = mean(Income), `Life Exp` = mean(`Life Exp`))
+```
+
+### `subset()`
+
+`subset()` combines `dplyr::filter()` and `dplyr::select()` and can use bare column names.
+
+```{r}
+subset(df, Population > 4500 & Income > 4500)
+
+tbl |>
+  dplyr::filter(Population > 4500, Income > 4500)
+
+subset(df, select = Population:Illiteracy)
+
+tbl |>
+  dplyr::select(c(State, Population:Illiteracy))
+
+subset(df, Population > 4500 & Income > 4500, select = Population:Illiteracy)
+
+tbl |>
+  dplyr::filter(Population > 4500, Income > 4500) |>
+  dplyr::select(c(State, Population:Illiteracy))
+```
+
+### `transform()`
+
+`transform()` performs like `dplyr::mutate()`.
+
+```{r}
+transform(df, pop_density = Population / Area)
+
+tbl |>
+  dplyr::mutate(pop_density = Population / Area)
+```
+
+## Helpers
+
+### `cut()`
+
+`cut()` bins a numeric vector into equal length intervals of its range if `length(breaks) == 1` or intervals with start and end points defined by `breaks`.
+
+```{r}
+cut(runif(5), breaks = 2)
+cut(runif(5), breaks = c(0, 0.5, 1))
+cut(runif(5), breaks = c(0, 0.5, 1), labels = FALSE)
+
+cut(1:5, breaks = 2)
+cut(1:5, breaks = c(1, 2.5, 5))
+cut(1:5, breaks = c(1, 2.5, 5), include.lowest = TRUE)
+```
+
+`cut()` can be helpful in combination with `tapply()` or `aggregate()`.
+
+```{r}
+x <- rnorm(100)
+
+tapply(x, cut(1:length(x), 2), mean)
+aggregate(x, list(cut(1:length(x), 2)), mean)
+
+tapply(x, cut(1:length(x), 2), quantile)
+aggregate(x, list(cut(1:length(x), 2)), quantile)
+```
+
+### `split()`
+
+`split()` is similar to `cut()`. It can also be applied to non-numeric vectors or data frames. It splits a vector into groups according to a factor.
+
+```{r}
+split(state.name, nchar(state.name) > 10)
+split(df, nchar(state.name) > 10)
+```
+
+With a formula we can also use bare column names for data frames.
+
+```{r}
+split(df, df$Region)
+
+split(df, ~ Region)
+```
+
+With nice names:
+
+```{r}
+f <- factor(
+  nchar(state.name) > 10,
+  levels = c(TRUE, FALSE),
+  labels = c("long_name", "short_name")
+)
+split(df, f)
+```
+
+### `unsplit()`
+
+`unsplit()` removes the split again.
+
+```{r}
+split(df, f) |> 
+  unsplit(f)
+```
+
+### `stack()`
+
+`stacK()` performs like `tidyr::pivot_longer()`
+
+```{r}
+stack(df, select = c(Population, Income))
+
+tbl |> 
+  tidyr::pivot_longer(c(Population, Income)) |> 
+  dplyr::select(c(name, value))
+```
+
+But it can also be used for named lists and returns a data frame.
+
+```{r}
+stack(list(x = 1:3, y = letters[1:5]))
+```

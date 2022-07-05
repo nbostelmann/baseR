@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-0.9.640">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>base R functions compared to purrr and dplyr</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<script src="index_files/libs/clipboard/clipboard.min.js"></script>
+<script src="index_files/libs/quarto-html/quarto.js"></script>
+<script src="index_files/libs/quarto-html/popper.min.js"></script>
+<script src="index_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="index_files/libs/quarto-html/anchor.min.js"></script>
+<link href="index_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="index_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="index_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="index_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc"><h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+<li>
+<a href="#the-apply-family-of-functions" id="toc-the-apply-family-of-functions" class="nav-link active" data-scroll-target="#the-apply-family-of-functions">The apply family of functions</a>
+  <ul class="collapse">
+<li><a href="#apply" id="toc-apply" class="nav-link" data-scroll-target="#apply"><code>apply()</code></a></li>
+  <li><a href="#lapply" id="toc-lapply" class="nav-link" data-scroll-target="#lapply"><code>lapply()</code></a></li>
+  <li><a href="#sapply" id="toc-sapply" class="nav-link" data-scroll-target="#sapply"><code>sapply()</code></a></li>
+  <li><a href="#vapply" id="toc-vapply" class="nav-link" data-scroll-target="#vapply"><code>vapply()</code></a></li>
+  <li><a href="#mapply" id="toc-mapply" class="nav-link" data-scroll-target="#mapply"><code>mapply()</code></a></li>
+  <li><a href="#tapply" id="toc-tapply" class="nav-link" data-scroll-target="#tapply"><code>tapply()</code></a></li>
+  <li><a href="#overview-of-functions-and-their-arguments" id="toc-overview-of-functions-and-their-arguments" class="nav-link" data-scroll-target="#overview-of-functions-and-their-arguments">Overview of functions and their arguments</a></li>
+  </ul>
+</li>
+  <li>
+<a href="#data-frame-manipulation-functions" id="toc-data-frame-manipulation-functions" class="nav-link" data-scroll-target="#data-frame-manipulation-functions">Data frame manipulation functions</a>
+  <ul class="collapse">
+<li><a href="#aggregate" id="toc-aggregate" class="nav-link" data-scroll-target="#aggregate"><code>aggregate()</code></a></li>
+  <li><a href="#by" id="toc-by" class="nav-link" data-scroll-target="#by"><code>by()</code></a></li>
+  <li><a href="#subset" id="toc-subset" class="nav-link" data-scroll-target="#subset"><code>subset()</code></a></li>
+  <li><a href="#transform" id="toc-transform" class="nav-link" data-scroll-target="#transform"><code>transform()</code></a></li>
+  </ul>
+</li>
+  <li>
+<a href="#helpers" id="toc-helpers" class="nav-link" data-scroll-target="#helpers">Helpers</a>
+  <ul class="collapse">
+<li><a href="#cut" id="toc-cut" class="nav-link" data-scroll-target="#cut"><code>cut()</code></a></li>
+  <li><a href="#split" id="toc-split" class="nav-link" data-scroll-target="#split"><code>split()</code></a></li>
+  <li><a href="#unsplit" id="toc-unsplit" class="nav-link" data-scroll-target="#unsplit"><code>unsplit()</code></a></li>
+  <li><a href="#stack" id="toc-stack" class="nav-link" data-scroll-target="#stack"><code>stack()</code></a></li>
+  </ul>
+</li>
+  </ul></nav>
+</div>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<h1 class="title">base R functions compared to purrr and dplyr</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header><section id="the-apply-family-of-functions" class="level2"><h2 class="anchored" data-anchor-id="the-apply-family-of-functions">The apply family of functions</h2>
+<section id="apply" class="level3"><h3 class="anchored" data-anchor-id="apply"><code>apply()</code></h3>
+<p><code><a href="https://rdrr.io/r/base/apply.html">apply()</a></code> applies a function to matrix rows for <code>MARGIN = 1</code> or matrix columns for <code>MARGIN = 2</code>.</p>
+<div class="cell">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="op">(</span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">9</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1] [,2] [,3]
+[1,]    1    4    7
+[2,]    2    5    8
+[3,]    3    6    9</code></pre>
+</div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">A</span>, MARGIN <span class="op">=</span> <span class="fl">1</span>, FUN <span class="op">=</span> <span class="va">min</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1 2 3</code></pre>
+</div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">A</span>, MARGIN <span class="op">=</span> <span class="fl">2</span>, FUN <span class="op">=</span> <span class="va">min</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1 4 7</code></pre>
+</div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">A</span>, MARGIN <span class="op">=</span> <span class="fl">1</span>, FUN <span class="op">=</span> <span class="va">max</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] 7
+
+[[2]]
+[1] 8
+
+[[3]]
+[1] 9</code></pre>
+</div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">A</span>, MARGIN <span class="op">=</span> <span class="fl">2</span>, FUN <span class="op">=</span> <span class="va">max</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] 3
+
+[[2]]
+[1] 6
+
+[[3]]
+[1] 9</code></pre>
+</div>
+</div>
+</section><section id="lapply" class="level3"><h3 class="anchored" data-anchor-id="lapply"><code>lapply()</code></h3>
+<p><code><a href="https://rdrr.io/r/base/lapply.html">lapply()</a></code> applies a function to each element of a vector and returns a list.</p>
+<div class="cell">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="va">runif</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] 0.9849103
+
+[[2]]
+[1] 0.9332237 0.5018482
+
+[[3]]
+[1] 0.1597011 0.7169083 0.1012940</code></pre>
+</div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="va">runif</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] 0.2085257
+
+[[2]]
+[1] 0.64954847 0.09799688
+
+[[3]]
+[1] 0.6758754 0.9626903 0.4096542</code></pre>
+</div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="va">toupper</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] "A"
+
+[[2]]
+[1] "B"
+
+[[3]]
+[1] "C"</code></pre>
+</div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="va">toupper</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] "A"
+
+[[2]]
+[1] "B"
+
+[[3]]
+[1] "C"</code></pre>
+</div>
+</div>
+</section><section id="sapply" class="level3"><h3 class="anchored" data-anchor-id="sapply"><code>sapply()</code></h3>
+<p><code><a href="https://rdrr.io/r/base/lapply.html">sapply()</a></code> tries to simplify the result of lapply().</p>
+<div class="cell">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="va">toupper</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  a   b   c 
+"A" "B" "C" </code></pre>
+</div>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map_chr</a></span><span class="op">(</span><span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/set_names.html">set_names</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>, <span class="va">toupper</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  a   b   c 
+"A" "B" "C" </code></pre>
+</div>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="va">toupper</span>, USE.NAMES <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "A" "B" "C"</code></pre>
+</div>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map_chr</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="va">toupper</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "A" "B" "C"</code></pre>
+</div>
+</div>
+</section><section id="vapply" class="level3"><h3 class="anchored" data-anchor-id="vapply"><code>vapply()</code></h3>
+<p><code><a href="https://rdrr.io/r/base/lapply.html">vapply()</a></code> takes input how to simplify the result of <code><a href="https://rdrr.io/r/base/lapply.html">lapply()</a></code>.</p>
+<div class="cell">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="va">toupper</span>, FUN.VALUE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  a   b   c 
+"A" "B" "C" </code></pre>
+</div>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map_chr</a></span><span class="op">(</span><span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/set_names.html">set_names</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>, <span class="va">toupper</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  a   b   c 
+"A" "B" "C" </code></pre>
+</div>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="va">toupper</span>, FUN.VALUE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>, USE.NAMES <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "A" "B" "C"</code></pre>
+</div>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map_chr</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="va">toupper</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "A" "B" "C"</code></pre>
+</div>
+</div>
+</section><section id="mapply" class="level3"><h3 class="anchored" data-anchor-id="mapply"><code>mapply()</code></h3>
+<p><code><a href="https://rdrr.io/r/base/mapply.html">mapply()</a></code> applies a function with multiple parameters to each element of a list of vectors in parallel.</p>
+<div class="cell">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/mapply.html">mapply</a></span><span class="op">(</span><span class="va">runif</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fl">0</span><span class="op">:</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] 0.9602386
+
+[[2]]
+[1] 1.101956 1.620678
+
+[[3]]
+[1] 2.850576 2.732058 2.137185</code></pre>
+</div>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map2.html">pmap</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fl">0</span><span class="op">:</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span>, <span class="va">runif</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] 0.1579255
+
+[[2]]
+[1] 1.643076 1.237054
+
+[[3]]
+[1] 2.492357 2.889036 2.049092</code></pre>
+</div>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/mapply.html">mapply</a></span><span class="op">(</span><span class="va">runif</span>, min <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">2</span>, max <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, n <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] 0.6046468
+
+[[2]]
+[1] 1.496602 1.116506
+
+[[3]]
+[1] 2.117792 2.803904 2.426909</code></pre>
+</div>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map2.html">pmap</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>min <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">2</span>, max <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, n <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span>, <span class="va">runif</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] 0.5563695
+
+[[2]]
+[1] 1.454797 1.538148
+
+[[3]]
+[1] 2.100740 2.791246 2.123070</code></pre>
+</div>
+</div>
+</section><section id="tapply" class="level3"><h3 class="anchored" data-anchor-id="tapply"><code>tapply()</code></h3>
+<p><code><a href="https://rdrr.io/r/base/tapply.html">tapply()</a></code> groups a vector according to a factor and applies a function to each group and tries to simplify the result. Also see examples for <code><a href="https://rdrr.io/r/stats/aggregate.html">aggregate()</a></code>.</p>
+<div class="cell">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/tapply.html">tapply</a></span><span class="op">(</span><span class="va">state.x77</span><span class="op">[</span>, <span class="st">"Population"</span><span class="op">]</span>, <span class="va">state.region</span>, <span class="va">sum</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    Northeast         South North Central          West 
+        49456         67330         57636         37899 </code></pre>
+</div>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/tapply.html">tapply</a></span><span class="op">(</span><span class="va">state.x77</span><span class="op">[</span>, <span class="st">"Population"</span><span class="op">]</span>, <span class="va">state.region</span>, <span class="va">sum</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$Northeast
+[1] 49456
+
+$South
+[1] 67330
+
+$`North Central`
+[1] 57636
+
+$West
+[1] 37899</code></pre>
+</div>
+</div>
+</section><section id="overview-of-functions-and-their-arguments" class="level3"><h3 class="anchored" data-anchor-id="overview-of-functions-and-their-arguments">Overview of functions and their arguments</h3>
+<div class="cell">
+<div class="cell-output-display">
+<table class="table table-sm table-striped">
+<thead><tr class="header">
+<th style="text-align: left;">f</th>
+<th style="text-align: left;">…1</th>
+<th style="text-align: left;">…2</th>
+<th style="text-align: left;">…3</th>
+<th style="text-align: left;">…4</th>
+<th style="text-align: left;">…5</th>
+<th style="text-align: left;">…6</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">apply</td>
+<td style="text-align: left;">X</td>
+<td style="text-align: left;">MARGIN</td>
+<td style="text-align: left;">FUN</td>
+<td style="text-align: left;">…</td>
+<td style="text-align: left;">simplify</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">lapply</td>
+<td style="text-align: left;">X</td>
+<td style="text-align: left;">FUN</td>
+<td style="text-align: left;">…</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">sapply</td>
+<td style="text-align: left;">X</td>
+<td style="text-align: left;">FUN</td>
+<td style="text-align: left;">…</td>
+<td style="text-align: left;">simplify</td>
+<td style="text-align: left;">USE.NAMES</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">vapply</td>
+<td style="text-align: left;">X</td>
+<td style="text-align: left;">FUN</td>
+<td style="text-align: left;">FUN.VALUE</td>
+<td style="text-align: left;">…</td>
+<td style="text-align: left;">USE.NAMES</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">mapply</td>
+<td style="text-align: left;">FUN</td>
+<td style="text-align: left;">…</td>
+<td style="text-align: left;">MoreArgs</td>
+<td style="text-align: left;">SIMPLIFY</td>
+<td style="text-align: left;">USE.NAMES</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">tapply</td>
+<td style="text-align: left;">X</td>
+<td style="text-align: left;">INDEX</td>
+<td style="text-align: left;">FUN</td>
+<td style="text-align: left;">…</td>
+<td style="text-align: left;">default</td>
+<td style="text-align: left;">simplify</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>None of the apply functions are generic.</p>
+<div class="cell">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/setNames.html">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">funs</span>, <span class="va">isGeneric</span><span class="op">)</span>, <span class="va">funs</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> apply lapply sapply vapply mapply tapply 
+ FALSE  FALSE  FALSE  FALSE  FALSE  FALSE </code></pre>
+</div>
+</div>
+</section></section><section id="data-frame-manipulation-functions" class="level2"><h2 class="anchored" data-anchor-id="data-frame-manipulation-functions">Data frame manipulation functions</h2>
+<section id="aggregate" class="level3"><h3 class="anchored" data-anchor-id="aggregate"><code>aggregate()</code></h3>
+<p><code><a href="https://rdrr.io/r/stats/aggregate.html">aggregate()</a></code> combines <code><a href="https://dplyr.tidyverse.org/reference/group_by.html">dplyr::group_by()</a></code> and <code><a href="https://dplyr.tidyverse.org/reference/summarise.html">dplyr::summarise()</a></code>.</p>
+<div class="cell">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="op">(</span><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">state.x77</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/transform.html">transform</a></span><span class="op">(</span>Region <span class="op">=</span> <span class="va">state.region</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Population Income Illiteracy Life.Exp Murder HS.Grad Frost   Area
+Alabama           3615   3624        2.1    69.05   15.1    41.3    20  50708
+Alaska             365   6315        1.5    69.31   11.3    66.7   152 566432
+Arizona           2212   4530        1.8    70.55    7.8    58.1    15 113417
+Arkansas          2110   3378        1.9    70.66   10.1    39.9    65  51945
+California       21198   5114        1.1    71.71   10.3    62.6    20 156361
+Colorado          2541   4884        0.7    72.06    6.8    63.9   166 103766
+Connecticut       3100   5348        1.1    72.48    3.1    56.0   139   4862
+Delaware           579   4809        0.9    70.06    6.2    54.6   103   1982
+Florida           8277   4815        1.3    70.66   10.7    52.6    11  54090
+Georgia           4931   4091        2.0    68.54   13.9    40.6    60  58073
+Hawaii             868   4963        1.9    73.60    6.2    61.9     0   6425
+               Region
+Alabama         South
+Alaska           West
+Arizona          West
+Arkansas        South
+California       West
+Colorado         West
+Connecticut Northeast
+Delaware        South
+Florida         South
+Georgia         South
+Hawaii           West
+ [ reached 'max' / getOption("max.print") -- omitted 39 rows ]</code></pre>
+</div>
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="op">(</span><span class="va">tbl</span> <span class="op">&lt;-</span> <span class="va">state.x77</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html">as_tibble</a></span><span class="op">(</span>rownames <span class="op">=</span> <span class="st">"State"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>Region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">state.region</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 50 × 10
+   State   Population Income Illiteracy `Life Exp` Murder `HS Grad` Frost   Area
+   &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+ 1 Alabama       3615   3624        2.1       69.0   15.1      41.3    20  50708
+ 2 Alaska         365   6315        1.5       69.3   11.3      66.7   152 566432
+ 3 Arizona       2212   4530        1.8       70.6    7.8      58.1    15 113417
+ 4 Arkans…       2110   3378        1.9       70.7   10.1      39.9    65  51945
+ 5 Califo…      21198   5114        1.1       71.7   10.3      62.6    20 156361
+ 6 Colora…       2541   4884        0.7       72.1    6.8      63.9   166 103766
+ 7 Connec…       3100   5348        1.1       72.5    3.1      56     139   4862
+ 8 Delawa…        579   4809        0.9       70.1    6.2      54.6   103   1982
+ 9 Florida       8277   4815        1.3       70.7   10.7      52.6    11  54090
+10 Georgia       4931   4091        2         68.5   13.9      40.6    60  58073
+# … with 40 more rows, and 1 more variable: Region &lt;chr&gt;</code></pre>
+</div>
+</div>
+<p>If the first argument is a data frame, the grouping can not have bare column names. Passing the whole data frame applies the function to every column.</p>
+<div class="cell">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">df</span><span class="op">[</span>, <span class="op">-</span><span class="fl">9</span><span class="op">]</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">Region</span><span class="op">)</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        Group.1 Population   Income Illiteracy Life.Exp    Murder  HS.Grad
+1     Northeast   5495.111 4570.222   1.000000 71.26444  4.722222 53.96667
+2         South   4208.125 4011.938   1.737500 69.70625 10.581250 44.34375
+3 North Central   4803.000 4611.083   0.700000 71.76667  5.275000 54.51667
+4          West   2915.308 4702.615   1.023077 71.23462  7.215385 62.00000
+     Frost      Area
+1 132.7778  18141.00
+2  64.6250  54605.12
+3 138.8333  62652.00
+4 102.1538 134463.00</code></pre>
+</div>
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">Region</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html">across</a></span><span class="op">(</span><span class="op">-</span><span class="va">State</span>, <span class="va">mean</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 9
+  Region   Population Income Illiteracy `Life Exp` Murder `HS Grad` Frost   Area
+  &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+1 North C…      4803   4611.       0.7        71.8   5.28      54.5 139.  6.27e4
+2 Northea…      5495.  4570.       1          71.3   4.72      54.0 133.  1.81e4
+3 South         4208.  4012.       1.74       69.7  10.6       44.3  64.6 5.46e4
+4 West          2915.  4703.       1.02       71.2   7.22      62   102.  1.34e5</code></pre>
+</div>
+</div>
+<p>Aggregating individual columns is done by explicitly referencing the column. This can also be expressed through a formula which can use bare names.</p>
+<div class="cell">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">Population</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">Region</span><span class="op">)</span>, FUN <span class="op">=</span> <span class="va">sum</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        Group.1     x
+1     Northeast 49456
+2         South 67330
+3 North Central 57636
+4          West 37899</code></pre>
+</div>
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">Population</span> <span class="op">~</span> <span class="va">Region</span>, data <span class="op">=</span> <span class="va">df</span>, FUN <span class="op">=</span> <span class="va">sum</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         Region Population
+1     Northeast      49456
+2         South      67330
+3 North Central      57636
+4          West      37899</code></pre>
+</div>
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">Region</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>Population <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">Population</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 2
+  Region        Population
+  &lt;chr&gt;              &lt;dbl&gt;
+1 North Central      57636
+2 Northeast          49456
+3 South              67330
+4 West               37899</code></pre>
+</div>
+</div>
+<p>Multiple groupings are also possible, including groups created on the fly.</p>
+<div class="cell">
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">Population</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">Region</span>, <span class="va">df</span><span class="op">$</span><span class="va">Income</span> <span class="op">&gt;</span> <span class="fl">4500</span><span class="op">)</span>, FUN <span class="op">=</span> <span class="va">sum</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        Group.1 Group.2     x
+1     Northeast   FALSE 14202
+2         South   FALSE 49371
+3 North Central   FALSE 15350
+4          West   FALSE  3906
+5     Northeast    TRUE 35254
+6         South    TRUE 17959
+7 North Central    TRUE 42286
+8          West    TRUE 33993</code></pre>
+</div>
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">Population</span> <span class="op">~</span> <span class="va">Region</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">Income</span> <span class="op">&gt;</span> <span class="fl">4500</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">df</span>, FUN <span class="op">=</span> <span class="va">sum</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         Region factor(Income &gt; 4500) Population
+1     Northeast                 FALSE      14202
+2         South                 FALSE      49371
+3 North Central                 FALSE      15350
+4          West                 FALSE       3906
+5     Northeast                  TRUE      35254
+6         South                  TRUE      17959
+7 North Central                  TRUE      42286
+8          West                  TRUE      33993</code></pre>
+</div>
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">Region</span>, <span class="va">Income</span> <span class="op">&gt;</span> <span class="fl">4500</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>Population <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">Population</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 3
+# Groups:   Region [4]
+  Region        `Income &gt; 4500` Population
+  &lt;chr&gt;         &lt;lgl&gt;                &lt;dbl&gt;
+1 North Central FALSE                15350
+2 North Central TRUE                 42286
+3 Northeast     FALSE                14202
+4 Northeast     TRUE                 35254
+5 South         FALSE                49371
+6 South         TRUE                 17959
+7 West          FALSE                 3906
+8 West          TRUE                 33993</code></pre>
+</div>
+</div>
+<p>Multiple functions can be applied by passing a lambda combining them. A list of functions is not possible.</p>
+<div class="cell">
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">Population</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">Region</span><span class="op">)</span>, FUN <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        Group.1       x.1       x.2
+1     Northeast 49456.000  5495.111
+2         South 67330.000  4208.125
+3 North Central 57636.000  4803.000
+4          West 37899.000  2915.308</code></pre>
+</div>
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">Population</span> <span class="op">~</span> <span class="va">Region</span>, data <span class="op">=</span> <span class="va">df</span>, FUN <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         Region Population.1 Population.2
+1     Northeast    49456.000     5495.111
+2         South    67330.000     4208.125
+3 North Central    57636.000     4803.000
+4          West    37899.000     2915.308</code></pre>
+</div>
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">Region</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html">across</a></span><span class="op">(</span><span class="va">Population</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>sum <span class="op">=</span> <span class="va">sum</span>, mean <span class="op">=</span> <span class="va">mean</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+  Region        Population_sum Population_mean
+  &lt;chr&gt;                  &lt;dbl&gt;           &lt;dbl&gt;
+1 North Central          57636           4803 
+2 Northeast              49456           5495.
+3 South                  67330           4208.
+4 West                   37899           2915.</code></pre>
+</div>
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">Region</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>Population_sum <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">Population</span><span class="op">)</span>, Population_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">Population</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+  Region        Population_sum Population_mean
+  &lt;chr&gt;                  &lt;dbl&gt;           &lt;dbl&gt;
+1 North Central          57636           4803 
+2 Northeast              49456           5495.
+3 South                  67330           4208.
+4 West                   37899           2915.</code></pre>
+</div>
+</div>
+</section><section id="by" class="level3"><h3 class="anchored" data-anchor-id="by"><code>by()</code></h3>
+<p><code><a href="https://rdrr.io/r/base/by.html">by()</a></code> works similarly to the data frame version of <code><a href="https://rdrr.io/r/stats/aggregate.html">aggregate()</a></code>, i.e.&nbsp;no bare names. However, the function is applied to the whole data frame, not columns individually. Therefore it behaves similar to <code><a href="https://rdrr.io/r/base/tapply.html">tapply()</a></code> for vectors.</p>
+<div class="cell">
+<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/by.html">by</a></span><span class="op">(</span></span>
+<span>  <span class="va">df</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Income"</span>, <span class="st">"Life.Exp"</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  INDICES <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">Region</span>,</span>
+<span>  FUN <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">mean</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>df$Region: Northeast
+    Income   Life.Exp 
+4570.22222   71.26444 
+------------------------------------------------------------ 
+df$Region: South
+    Income   Life.Exp 
+4011.93750   69.70625 
+------------------------------------------------------------ 
+df$Region: North Central
+    Income   Life.Exp 
+4611.08333   71.76667 
+------------------------------------------------------------ 
+df$Region: West
+    Income   Life.Exp 
+4702.61538   71.23462 </code></pre>
+</div>
+<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span></span>
+<span>  <span class="va">df</span><span class="op">[</span> , <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Income"</span>, <span class="st">"Life.Exp"</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">Region</span><span class="op">)</span>,</span>
+<span>  FUN <span class="op">=</span> <span class="va">mean</span></span>
+<span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        Group.1   Income Life.Exp
+1     Northeast 4570.222 71.26444
+2         South 4011.938 69.70625
+3 North Central 4611.083 71.76667
+4          West 4702.615 71.23462</code></pre>
+</div>
+<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">Region</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html">across</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">Income</span>, <span class="va">`Life Exp`</span><span class="op">)</span>, <span class="va">mean</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+  Region        Income `Life Exp`
+  &lt;chr&gt;          &lt;dbl&gt;      &lt;dbl&gt;
+1 North Central  4611.       71.8
+2 Northeast      4570.       71.3
+3 South          4012.       69.7
+4 West           4703.       71.2</code></pre>
+</div>
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">Region</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>Income <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">Income</span><span class="op">)</span>, `Life Exp` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">`Life Exp`</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+  Region        Income `Life Exp`
+  &lt;chr&gt;          &lt;dbl&gt;      &lt;dbl&gt;
+1 North Central  4611.       71.8
+2 Northeast      4570.       71.3
+3 South          4012.       69.7
+4 West           4703.       71.2</code></pre>
+</div>
+</div>
+</section><section id="subset" class="level3"><h3 class="anchored" data-anchor-id="subset"><code>subset()</code></h3>
+<p><code><a href="https://rdrr.io/r/base/subset.html">subset()</a></code> combines <code><a href="https://dplyr.tidyverse.org/reference/filter.html">dplyr::filter()</a></code> and <code><a href="https://dplyr.tidyverse.org/reference/select.html">dplyr::select()</a></code> and can use bare column names.</p>
+<div class="cell">
+<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">df</span>, <span class="va">Population</span> <span class="op">&gt;</span> <span class="fl">4500</span> <span class="op">&amp;</span> <span class="va">Income</span> <span class="op">&gt;</span> <span class="fl">4500</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              Population Income Illiteracy Life.Exp Murder HS.Grad Frost   Area
+California         21198   5114        1.1    71.71   10.3    62.6    20 156361
+Florida             8277   4815        1.3    70.66   10.7    52.6    11  54090
+Illinois           11197   5107        0.9    70.14   10.3    52.6   127  55748
+Massachusetts       5814   4755        1.1    71.83    3.3    58.5   103   7826
+Michigan            9111   4751        0.9    70.63   11.1    52.8   125  56817
+New Jersey          7333   5237        1.1    70.93    5.2    52.5   115   7521
+New York           18076   4903        1.4    70.55   10.9    52.7    82  47831
+Ohio               10735   4561        0.8    70.82    7.4    53.2   124  40975
+Virginia            4981   4701        1.4    70.08    9.5    47.8    85  39780
+                     Region
+California             West
+Florida               South
+Illinois      North Central
+Massachusetts     Northeast
+Michigan      North Central
+New Jersey        Northeast
+New York          Northeast
+Ohio          North Central
+Virginia              South</code></pre>
+</div>
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">Population</span> <span class="op">&gt;</span> <span class="fl">4500</span>, <span class="va">Income</span> <span class="op">&gt;</span> <span class="fl">4500</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 9 × 10
+  State    Population Income Illiteracy `Life Exp` Murder `HS Grad` Frost   Area
+  &lt;chr&gt;         &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+1 Califor…      21198   5114        1.1       71.7   10.3      62.6    20 156361
+2 Florida        8277   4815        1.3       70.7   10.7      52.6    11  54090
+3 Illinois      11197   5107        0.9       70.1   10.3      52.6   127  55748
+4 Massach…       5814   4755        1.1       71.8    3.3      58.5   103   7826
+5 Michigan       9111   4751        0.9       70.6   11.1      52.8   125  56817
+6 New Jer…       7333   5237        1.1       70.9    5.2      52.5   115   7521
+7 New York      18076   4903        1.4       70.6   10.9      52.7    82  47831
+8 Ohio          10735   4561        0.8       70.8    7.4      53.2   124  40975
+9 Virginia       4981   4701        1.4       70.1    9.5      47.8    85  39780
+# … with 1 more variable: Region &lt;chr&gt;</code></pre>
+</div>
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">df</span>, select <span class="op">=</span> <span class="va">Population</span><span class="op">:</span><span class="va">Illiteracy</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               Population Income Illiteracy
+Alabama              3615   3624        2.1
+Alaska                365   6315        1.5
+Arizona              2212   4530        1.8
+Arkansas             2110   3378        1.9
+California          21198   5114        1.1
+Colorado             2541   4884        0.7
+Connecticut          3100   5348        1.1
+Delaware              579   4809        0.9
+Florida              8277   4815        1.3
+Georgia              4931   4091        2.0
+Hawaii                868   4963        1.9
+Idaho                 813   4119        0.6
+Illinois            11197   5107        0.9
+Indiana              5313   4458        0.7
+Iowa                 2861   4628        0.5
+Kansas               2280   4669        0.6
+Kentucky             3387   3712        1.6
+Louisiana            3806   3545        2.8
+Maine                1058   3694        0.7
+Maryland             4122   5299        0.9
+Massachusetts        5814   4755        1.1
+Michigan             9111   4751        0.9
+Minnesota            3921   4675        0.6
+Mississippi          2341   3098        2.4
+Missouri             4767   4254        0.8
+Montana               746   4347        0.6
+Nebraska             1544   4508        0.6
+Nevada                590   5149        0.5
+New Hampshire         812   4281        0.7
+New Jersey           7333   5237        1.1
+New Mexico           1144   3601        2.2
+New York            18076   4903        1.4
+North Carolina       5441   3875        1.8
+ [ reached 'max' / getOption("max.print") -- omitted 17 rows ]</code></pre>
+</div>
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">State</span>, <span class="va">Population</span><span class="op">:</span><span class="va">Illiteracy</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 50 × 4
+   State       Population Income Illiteracy
+   &lt;chr&gt;            &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;
+ 1 Alabama           3615   3624        2.1
+ 2 Alaska             365   6315        1.5
+ 3 Arizona           2212   4530        1.8
+ 4 Arkansas          2110   3378        1.9
+ 5 California       21198   5114        1.1
+ 6 Colorado          2541   4884        0.7
+ 7 Connecticut       3100   5348        1.1
+ 8 Delaware           579   4809        0.9
+ 9 Florida           8277   4815        1.3
+10 Georgia           4931   4091        2  
+# … with 40 more rows</code></pre>
+</div>
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">df</span>, <span class="va">Population</span> <span class="op">&gt;</span> <span class="fl">4500</span> <span class="op">&amp;</span> <span class="va">Income</span> <span class="op">&gt;</span> <span class="fl">4500</span>, select <span class="op">=</span> <span class="va">Population</span><span class="op">:</span><span class="va">Illiteracy</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              Population Income Illiteracy
+California         21198   5114        1.1
+Florida             8277   4815        1.3
+Illinois           11197   5107        0.9
+Massachusetts       5814   4755        1.1
+Michigan            9111   4751        0.9
+New Jersey          7333   5237        1.1
+New York           18076   4903        1.4
+Ohio               10735   4561        0.8
+Virginia            4981   4701        1.4</code></pre>
+</div>
+<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">Population</span> <span class="op">&gt;</span> <span class="fl">4500</span>, <span class="va">Income</span> <span class="op">&gt;</span> <span class="fl">4500</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">State</span>, <span class="va">Population</span><span class="op">:</span><span class="va">Illiteracy</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 9 × 4
+  State         Population Income Illiteracy
+  &lt;chr&gt;              &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;
+1 California         21198   5114        1.1
+2 Florida             8277   4815        1.3
+3 Illinois           11197   5107        0.9
+4 Massachusetts       5814   4755        1.1
+5 Michigan            9111   4751        0.9
+6 New Jersey          7333   5237        1.1
+7 New York           18076   4903        1.4
+8 Ohio               10735   4561        0.8
+9 Virginia            4981   4701        1.4</code></pre>
+</div>
+</div>
+</section><section id="transform" class="level3"><h3 class="anchored" data-anchor-id="transform"><code>transform()</code></h3>
+<p><code><a href="https://rdrr.io/r/base/transform.html">transform()</a></code> performs like <code><a href="https://dplyr.tidyverse.org/reference/mutate.html">dplyr::mutate()</a></code>.</p>
+<div class="cell">
+<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/transform.html">transform</a></span><span class="op">(</span><span class="va">df</span>, pop_density <span class="op">=</span> <span class="va">Population</span> <span class="op">/</span> <span class="va">Area</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Population Income Illiteracy Life.Exp Murder HS.Grad Frost   Area
+Alabama           3615   3624        2.1    69.05   15.1    41.3    20  50708
+Alaska             365   6315        1.5    69.31   11.3    66.7   152 566432
+Arizona           2212   4530        1.8    70.55    7.8    58.1    15 113417
+Arkansas          2110   3378        1.9    70.66   10.1    39.9    65  51945
+California       21198   5114        1.1    71.71   10.3    62.6    20 156361
+Colorado          2541   4884        0.7    72.06    6.8    63.9   166 103766
+Connecticut       3100   5348        1.1    72.48    3.1    56.0   139   4862
+Delaware           579   4809        0.9    70.06    6.2    54.6   103   1982
+Florida           8277   4815        1.3    70.66   10.7    52.6    11  54090
+Georgia           4931   4091        2.0    68.54   13.9    40.6    60  58073
+               Region  pop_density
+Alabama         South 0.0712905261
+Alaska           West 0.0006443845
+Arizona          West 0.0195032491
+Arkansas        South 0.0406198864
+California       West 0.1355708904
+Colorado         West 0.0244877898
+Connecticut Northeast 0.6375976964
+Delaware        South 0.2921291625
+Florida         South 0.1530227399
+Georgia         South 0.0849103714
+ [ reached 'max' / getOption("max.print") -- omitted 40 rows ]</code></pre>
+</div>
+<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>pop_density <span class="op">=</span> <span class="va">Population</span> <span class="op">/</span> <span class="va">Area</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 50 × 11
+   State   Population Income Illiteracy `Life Exp` Murder `HS Grad` Frost   Area
+   &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+ 1 Alabama       3615   3624        2.1       69.0   15.1      41.3    20  50708
+ 2 Alaska         365   6315        1.5       69.3   11.3      66.7   152 566432
+ 3 Arizona       2212   4530        1.8       70.6    7.8      58.1    15 113417
+ 4 Arkans…       2110   3378        1.9       70.7   10.1      39.9    65  51945
+ 5 Califo…      21198   5114        1.1       71.7   10.3      62.6    20 156361
+ 6 Colora…       2541   4884        0.7       72.1    6.8      63.9   166 103766
+ 7 Connec…       3100   5348        1.1       72.5    3.1      56     139   4862
+ 8 Delawa…        579   4809        0.9       70.1    6.2      54.6   103   1982
+ 9 Florida       8277   4815        1.3       70.7   10.7      52.6    11  54090
+10 Georgia       4931   4091        2         68.5   13.9      40.6    60  58073
+# … with 40 more rows, and 2 more variables: Region &lt;chr&gt;, pop_density &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</section></section><section id="helpers" class="level2"><h2 class="anchored" data-anchor-id="helpers">Helpers</h2>
+<section id="cut" class="level3"><h3 class="anchored" data-anchor-id="cut"><code>cut()</code></h3>
+<p><code><a href="https://rdrr.io/r/base/cut.html">cut()</a></code> bins a numeric vector into equal length intervals of its range if <code>length(breaks) == 1</code> or intervals with start and end points defined by <code>breaks</code>.</p>
+<div class="cell">
+<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, breaks <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] (0.317,0.582] (0.317,0.582] (0.582,0.847] (0.317,0.582] (0.582,0.847]
+Levels: (0.317,0.582] (0.582,0.847]</code></pre>
+</div>
+<div class="sourceCode" id="cb103"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] (0,0.5] (0.5,1] (0,0.5] (0,0.5] (0,0.5]
+Levels: (0,0.5] (0.5,1]</code></pre>
+</div>
+<div class="sourceCode" id="cb105"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span>, <span class="fl">1</span><span class="op">)</span>, labels <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1 1 1 1 2</code></pre>
+</div>
+<div class="sourceCode" id="cb107"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, breaks <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] (0.996,3] (0.996,3] (0.996,3] (3,5]     (3,5]    
+Levels: (0.996,3] (3,5]</code></pre>
+</div>
+<div class="sourceCode" id="cb109"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2.5</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] &lt;NA&gt;    (1,2.5] (2.5,5] (2.5,5] (2.5,5]
+Levels: (1,2.5] (2.5,5]</code></pre>
+</div>
+<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2.5</span>, <span class="fl">5</span><span class="op">)</span>, include.lowest <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] [1,2.5] [1,2.5] (2.5,5] (2.5,5] (2.5,5]
+Levels: [1,2.5] (2.5,5]</code></pre>
+</div>
+</div>
+<p><code><a href="https://rdrr.io/r/base/cut.html">cut()</a></code> can be helpful in combination with <code><a href="https://rdrr.io/r/base/tapply.html">tapply()</a></code> or <code><a href="https://rdrr.io/r/stats/aggregate.html">aggregate()</a></code>.</p>
+<div class="cell">
+<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/tapply.html">tapply</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>, <span class="va">mean</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(0.901,50.5]   (50.5,100] 
+  0.05153878   0.01910416 </code></pre>
+</div>
+<div class="sourceCode" id="cb115"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>, <span class="va">mean</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       Group.1          x
+1 (0.901,50.5] 0.05153878
+2   (50.5,100] 0.01910416</code></pre>
+</div>
+<div class="sourceCode" id="cb117"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/tapply.html">tapply</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>, <span class="va">quantile</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`(0.901,50.5]`
+         0%         25%         50%         75%        100% 
+-2.50730163 -0.52912287  0.06720632  0.65965549  2.36962893 
+
+$`(50.5,100]`
+        0%        25%        50%        75%       100% 
+-3.1251499 -0.5962594  0.1726771  0.9218615  1.5649475 </code></pre>
+</div>
+<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>, <span class="va">quantile</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       Group.1        x.0%       x.25%       x.50%       x.75%      x.100%
+1 (0.901,50.5] -2.50730163 -0.52912287  0.06720632  0.65965549  2.36962893
+2   (50.5,100] -3.12514991 -0.59625944  0.17267709  0.92186153  1.56494751</code></pre>
+</div>
+</div>
+</section><section id="split" class="level3"><h3 class="anchored" data-anchor-id="split"><code>split()</code></h3>
+<p><code><a href="https://rdrr.io/r/base/split.html">split()</a></code> is similar to <code><a href="https://rdrr.io/r/base/cut.html">cut()</a></code>. It can also be applied to non-numeric vectors or data frames. It splits a vector into groups according to a factor.</p>
+<div class="cell">
+<div class="sourceCode" id="cb121"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/split.html">split</a></span><span class="op">(</span><span class="va">state.name</span>, <span class="fu"><a href="https://rdrr.io/r/base/nchar.html">nchar</a></span><span class="op">(</span><span class="va">state.name</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">10</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`FALSE`
+ [1] "Alabama"    "Alaska"     "Arizona"    "Arkansas"   "California"
+ [6] "Colorado"   "Delaware"   "Florida"    "Georgia"    "Hawaii"    
+[11] "Idaho"      "Illinois"   "Indiana"    "Iowa"       "Kansas"    
+[16] "Kentucky"   "Louisiana"  "Maine"      "Maryland"   "Michigan"  
+[21] "Minnesota"  "Missouri"   "Montana"    "Nebraska"   "Nevada"    
+[26] "New Jersey" "New Mexico" "New York"   "Ohio"       "Oklahoma"  
+[31] "Oregon"     "Tennessee"  "Texas"      "Utah"       "Vermont"   
+[36] "Virginia"   "Washington" "Wisconsin"  "Wyoming"   
+
+$`TRUE`
+ [1] "Connecticut"    "Massachusetts"  "Mississippi"    "New Hampshire" 
+ [5] "North Carolina" "North Dakota"   "Pennsylvania"   "Rhode Island"  
+ [9] "South Carolina" "South Dakota"   "West Virginia" </code></pre>
+</div>
+<div class="sourceCode" id="cb123"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/split.html">split</a></span><span class="op">(</span><span class="va">df</span>, <span class="fu"><a href="https://rdrr.io/r/base/nchar.html">nchar</a></span><span class="op">(</span><span class="va">state.name</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">10</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`FALSE`
+           Population Income Illiteracy Life.Exp Murder HS.Grad Frost   Area
+Alabama          3615   3624        2.1    69.05   15.1    41.3    20  50708
+Alaska            365   6315        1.5    69.31   11.3    66.7   152 566432
+Arizona          2212   4530        1.8    70.55    7.8    58.1    15 113417
+Arkansas         2110   3378        1.9    70.66   10.1    39.9    65  51945
+California      21198   5114        1.1    71.71   10.3    62.6    20 156361
+Colorado         2541   4884        0.7    72.06    6.8    63.9   166 103766
+Delaware          579   4809        0.9    70.06    6.2    54.6   103   1982
+Florida          8277   4815        1.3    70.66   10.7    52.6    11  54090
+Georgia          4931   4091        2.0    68.54   13.9    40.6    60  58073
+Hawaii            868   4963        1.9    73.60    6.2    61.9     0   6425
+Idaho             813   4119        0.6    71.87    5.3    59.5   126  82677
+           Region
+Alabama     South
+Alaska       West
+Arizona      West
+Arkansas    South
+California   West
+Colorado     West
+Delaware    South
+Florida     South
+Georgia     South
+Hawaii       West
+Idaho        West
+ [ reached 'max' / getOption("max.print") -- omitted 28 rows ]
+
+$`TRUE`
+               Population Income Illiteracy Life.Exp Murder HS.Grad Frost  Area
+Connecticut          3100   5348        1.1    72.48    3.1    56.0   139  4862
+Massachusetts        5814   4755        1.1    71.83    3.3    58.5   103  7826
+Mississippi          2341   3098        2.4    68.09   12.5    41.0    50 47296
+New Hampshire         812   4281        0.7    71.23    3.3    57.6   174  9027
+North Carolina       5441   3875        1.8    69.21   11.1    38.5    80 48798
+North Dakota          637   5087        0.8    72.78    1.4    50.3   186 69273
+Pennsylvania        11860   4449        1.0    70.43    6.1    50.2   126 44966
+Rhode Island          931   4558        1.3    71.90    2.4    46.4   127  1049
+South Carolina       2816   3635        2.3    67.96   11.6    37.8    65 30225
+South Dakota          681   4167        0.5    72.08    1.7    53.3   172 75955
+West Virginia        1799   3617        1.4    69.48    6.7    41.6   100 24070
+                      Region
+Connecticut        Northeast
+Massachusetts      Northeast
+Mississippi            South
+New Hampshire      Northeast
+North Carolina         South
+North Dakota   North Central
+Pennsylvania       Northeast
+Rhode Island       Northeast
+South Carolina         South
+South Dakota   North Central
+West Virginia          South</code></pre>
+</div>
+</div>
+<p>With a formula we can also use bare column names for data frames.</p>
+<div class="cell">
+<div class="sourceCode" id="cb125"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/split.html">split</a></span><span class="op">(</span><span class="va">df</span>, <span class="va">df</span><span class="op">$</span><span class="va">Region</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$Northeast
+              Population Income Illiteracy Life.Exp Murder HS.Grad Frost  Area
+Connecticut         3100   5348        1.1    72.48    3.1    56.0   139  4862
+Maine               1058   3694        0.7    70.39    2.7    54.7   161 30920
+Massachusetts       5814   4755        1.1    71.83    3.3    58.5   103  7826
+New Hampshire        812   4281        0.7    71.23    3.3    57.6   174  9027
+New Jersey          7333   5237        1.1    70.93    5.2    52.5   115  7521
+New York           18076   4903        1.4    70.55   10.9    52.7    82 47831
+Pennsylvania       11860   4449        1.0    70.43    6.1    50.2   126 44966
+Rhode Island         931   4558        1.3    71.90    2.4    46.4   127  1049
+Vermont              472   3907        0.6    71.64    5.5    57.1   168  9267
+                 Region
+Connecticut   Northeast
+Maine         Northeast
+Massachusetts Northeast
+New Hampshire Northeast
+New Jersey    Northeast
+New York      Northeast
+Pennsylvania  Northeast
+Rhode Island  Northeast
+Vermont       Northeast
+
+$South
+               Population Income Illiteracy Life.Exp Murder HS.Grad Frost  Area
+Alabama              3615   3624        2.1    69.05   15.1    41.3    20 50708
+Arkansas             2110   3378        1.9    70.66   10.1    39.9    65 51945
+Delaware              579   4809        0.9    70.06    6.2    54.6   103  1982
+Florida              8277   4815        1.3    70.66   10.7    52.6    11 54090
+Georgia              4931   4091        2.0    68.54   13.9    40.6    60 58073
+Kentucky             3387   3712        1.6    70.10   10.6    38.5    95 39650
+Louisiana            3806   3545        2.8    68.76   13.2    42.2    12 44930
+Maryland             4122   5299        0.9    70.22    8.5    52.3   101  9891
+Mississippi          2341   3098        2.4    68.09   12.5    41.0    50 47296
+North Carolina       5441   3875        1.8    69.21   11.1    38.5    80 48798
+Oklahoma             2715   3983        1.1    71.42    6.4    51.6    82 68782
+               Region
+Alabama         South
+Arkansas        South
+Delaware        South
+Florida         South
+Georgia         South
+Kentucky        South
+Louisiana       South
+Maryland        South
+Mississippi     South
+North Carolina  South
+Oklahoma        South
+ [ reached 'max' / getOption("max.print") -- omitted 5 rows ]
+
+$`North Central`
+             Population Income Illiteracy Life.Exp Murder HS.Grad Frost  Area
+Illinois          11197   5107        0.9    70.14   10.3    52.6   127 55748
+Indiana            5313   4458        0.7    70.88    7.1    52.9   122 36097
+Iowa               2861   4628        0.5    72.56    2.3    59.0   140 55941
+Kansas             2280   4669        0.6    72.58    4.5    59.9   114 81787
+Michigan           9111   4751        0.9    70.63   11.1    52.8   125 56817
+Minnesota          3921   4675        0.6    72.96    2.3    57.6   160 79289
+Missouri           4767   4254        0.8    70.69    9.3    48.8   108 68995
+Nebraska           1544   4508        0.6    72.60    2.9    59.3   139 76483
+North Dakota        637   5087        0.8    72.78    1.4    50.3   186 69273
+Ohio              10735   4561        0.8    70.82    7.4    53.2   124 40975
+South Dakota        681   4167        0.5    72.08    1.7    53.3   172 75955
+                    Region
+Illinois     North Central
+Indiana      North Central
+Iowa         North Central
+Kansas       North Central
+Michigan     North Central
+Minnesota    North Central
+Missouri     North Central
+Nebraska     North Central
+North Dakota North Central
+Ohio         North Central
+South Dakota North Central
+ [ reached 'max' / getOption("max.print") -- omitted 1 rows ]
+
+$West
+           Population Income Illiteracy Life.Exp Murder HS.Grad Frost   Area
+Alaska            365   6315        1.5    69.31   11.3    66.7   152 566432
+Arizona          2212   4530        1.8    70.55    7.8    58.1    15 113417
+California      21198   5114        1.1    71.71   10.3    62.6    20 156361
+Colorado         2541   4884        0.7    72.06    6.8    63.9   166 103766
+Hawaii            868   4963        1.9    73.60    6.2    61.9     0   6425
+Idaho             813   4119        0.6    71.87    5.3    59.5   126  82677
+Montana           746   4347        0.6    70.56    5.0    59.2   155 145587
+Nevada            590   5149        0.5    69.03   11.5    65.2   188 109889
+New Mexico       1144   3601        2.2    70.32    9.7    55.2   120 121412
+Oregon           2284   4660        0.6    72.13    4.2    60.0    44  96184
+Utah             1203   4022        0.6    72.90    4.5    67.3   137  82096
+           Region
+Alaska       West
+Arizona      West
+California   West
+Colorado     West
+Hawaii       West
+Idaho        West
+Montana      West
+Nevada       West
+New Mexico   West
+Oregon       West
+Utah         West
+ [ reached 'max' / getOption("max.print") -- omitted 2 rows ]</code></pre>
+</div>
+<div class="sourceCode" id="cb127"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/split.html">split</a></span><span class="op">(</span><span class="va">df</span>, <span class="op">~</span> <span class="va">Region</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$Northeast
+              Population Income Illiteracy Life.Exp Murder HS.Grad Frost  Area
+Connecticut         3100   5348        1.1    72.48    3.1    56.0   139  4862
+Maine               1058   3694        0.7    70.39    2.7    54.7   161 30920
+Massachusetts       5814   4755        1.1    71.83    3.3    58.5   103  7826
+New Hampshire        812   4281        0.7    71.23    3.3    57.6   174  9027
+New Jersey          7333   5237        1.1    70.93    5.2    52.5   115  7521
+New York           18076   4903        1.4    70.55   10.9    52.7    82 47831
+Pennsylvania       11860   4449        1.0    70.43    6.1    50.2   126 44966
+Rhode Island         931   4558        1.3    71.90    2.4    46.4   127  1049
+Vermont              472   3907        0.6    71.64    5.5    57.1   168  9267
+                 Region
+Connecticut   Northeast
+Maine         Northeast
+Massachusetts Northeast
+New Hampshire Northeast
+New Jersey    Northeast
+New York      Northeast
+Pennsylvania  Northeast
+Rhode Island  Northeast
+Vermont       Northeast
+
+$South
+               Population Income Illiteracy Life.Exp Murder HS.Grad Frost  Area
+Alabama              3615   3624        2.1    69.05   15.1    41.3    20 50708
+Arkansas             2110   3378        1.9    70.66   10.1    39.9    65 51945
+Delaware              579   4809        0.9    70.06    6.2    54.6   103  1982
+Florida              8277   4815        1.3    70.66   10.7    52.6    11 54090
+Georgia              4931   4091        2.0    68.54   13.9    40.6    60 58073
+Kentucky             3387   3712        1.6    70.10   10.6    38.5    95 39650
+Louisiana            3806   3545        2.8    68.76   13.2    42.2    12 44930
+Maryland             4122   5299        0.9    70.22    8.5    52.3   101  9891
+Mississippi          2341   3098        2.4    68.09   12.5    41.0    50 47296
+North Carolina       5441   3875        1.8    69.21   11.1    38.5    80 48798
+Oklahoma             2715   3983        1.1    71.42    6.4    51.6    82 68782
+               Region
+Alabama         South
+Arkansas        South
+Delaware        South
+Florida         South
+Georgia         South
+Kentucky        South
+Louisiana       South
+Maryland        South
+Mississippi     South
+North Carolina  South
+Oklahoma        South
+ [ reached 'max' / getOption("max.print") -- omitted 5 rows ]
+
+$`North Central`
+             Population Income Illiteracy Life.Exp Murder HS.Grad Frost  Area
+Illinois          11197   5107        0.9    70.14   10.3    52.6   127 55748
+Indiana            5313   4458        0.7    70.88    7.1    52.9   122 36097
+Iowa               2861   4628        0.5    72.56    2.3    59.0   140 55941
+Kansas             2280   4669        0.6    72.58    4.5    59.9   114 81787
+Michigan           9111   4751        0.9    70.63   11.1    52.8   125 56817
+Minnesota          3921   4675        0.6    72.96    2.3    57.6   160 79289
+Missouri           4767   4254        0.8    70.69    9.3    48.8   108 68995
+Nebraska           1544   4508        0.6    72.60    2.9    59.3   139 76483
+North Dakota        637   5087        0.8    72.78    1.4    50.3   186 69273
+Ohio              10735   4561        0.8    70.82    7.4    53.2   124 40975
+South Dakota        681   4167        0.5    72.08    1.7    53.3   172 75955
+                    Region
+Illinois     North Central
+Indiana      North Central
+Iowa         North Central
+Kansas       North Central
+Michigan     North Central
+Minnesota    North Central
+Missouri     North Central
+Nebraska     North Central
+North Dakota North Central
+Ohio         North Central
+South Dakota North Central
+ [ reached 'max' / getOption("max.print") -- omitted 1 rows ]
+
+$West
+           Population Income Illiteracy Life.Exp Murder HS.Grad Frost   Area
+Alaska            365   6315        1.5    69.31   11.3    66.7   152 566432
+Arizona          2212   4530        1.8    70.55    7.8    58.1    15 113417
+California      21198   5114        1.1    71.71   10.3    62.6    20 156361
+Colorado         2541   4884        0.7    72.06    6.8    63.9   166 103766
+Hawaii            868   4963        1.9    73.60    6.2    61.9     0   6425
+Idaho             813   4119        0.6    71.87    5.3    59.5   126  82677
+Montana           746   4347        0.6    70.56    5.0    59.2   155 145587
+Nevada            590   5149        0.5    69.03   11.5    65.2   188 109889
+New Mexico       1144   3601        2.2    70.32    9.7    55.2   120 121412
+Oregon           2284   4660        0.6    72.13    4.2    60.0    44  96184
+Utah             1203   4022        0.6    72.90    4.5    67.3   137  82096
+           Region
+Alaska       West
+Arizona      West
+California   West
+Colorado     West
+Hawaii       West
+Idaho        West
+Montana      West
+Nevada       West
+New Mexico   West
+Oregon       West
+Utah         West
+ [ reached 'max' / getOption("max.print") -- omitted 2 rows ]</code></pre>
+</div>
+</div>
+<p>With nice names:</p>
+<div class="cell">
+<div class="sourceCode" id="cb129"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/nchar.html">nchar</a></span><span class="op">(</span><span class="va">state.name</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">10</span>,</span>
+<span>  levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"long_name"</span>, <span class="st">"short_name"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/split.html">split</a></span><span class="op">(</span><span class="va">df</span>, <span class="va">f</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$long_name
+               Population Income Illiteracy Life.Exp Murder HS.Grad Frost  Area
+Connecticut          3100   5348        1.1    72.48    3.1    56.0   139  4862
+Massachusetts        5814   4755        1.1    71.83    3.3    58.5   103  7826
+Mississippi          2341   3098        2.4    68.09   12.5    41.0    50 47296
+New Hampshire         812   4281        0.7    71.23    3.3    57.6   174  9027
+North Carolina       5441   3875        1.8    69.21   11.1    38.5    80 48798
+North Dakota          637   5087        0.8    72.78    1.4    50.3   186 69273
+Pennsylvania        11860   4449        1.0    70.43    6.1    50.2   126 44966
+Rhode Island          931   4558        1.3    71.90    2.4    46.4   127  1049
+South Carolina       2816   3635        2.3    67.96   11.6    37.8    65 30225
+South Dakota          681   4167        0.5    72.08    1.7    53.3   172 75955
+West Virginia        1799   3617        1.4    69.48    6.7    41.6   100 24070
+                      Region
+Connecticut        Northeast
+Massachusetts      Northeast
+Mississippi            South
+New Hampshire      Northeast
+North Carolina         South
+North Dakota   North Central
+Pennsylvania       Northeast
+Rhode Island       Northeast
+South Carolina         South
+South Dakota   North Central
+West Virginia          South
+
+$short_name
+           Population Income Illiteracy Life.Exp Murder HS.Grad Frost   Area
+Alabama          3615   3624        2.1    69.05   15.1    41.3    20  50708
+Alaska            365   6315        1.5    69.31   11.3    66.7   152 566432
+Arizona          2212   4530        1.8    70.55    7.8    58.1    15 113417
+Arkansas         2110   3378        1.9    70.66   10.1    39.9    65  51945
+California      21198   5114        1.1    71.71   10.3    62.6    20 156361
+Colorado         2541   4884        0.7    72.06    6.8    63.9   166 103766
+Delaware          579   4809        0.9    70.06    6.2    54.6   103   1982
+Florida          8277   4815        1.3    70.66   10.7    52.6    11  54090
+Georgia          4931   4091        2.0    68.54   13.9    40.6    60  58073
+Hawaii            868   4963        1.9    73.60    6.2    61.9     0   6425
+Idaho             813   4119        0.6    71.87    5.3    59.5   126  82677
+           Region
+Alabama     South
+Alaska       West
+Arizona      West
+Arkansas    South
+California   West
+Colorado     West
+Delaware    South
+Florida     South
+Georgia     South
+Hawaii       West
+Idaho        West
+ [ reached 'max' / getOption("max.print") -- omitted 28 rows ]</code></pre>
+</div>
+</div>
+</section><section id="unsplit" class="level3"><h3 class="anchored" data-anchor-id="unsplit"><code>unsplit()</code></h3>
+<p><code><a href="https://rdrr.io/r/base/split.html">unsplit()</a></code> removes the split again.</p>
+<div class="cell">
+<div class="sourceCode" id="cb131"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/split.html">split</a></span><span class="op">(</span><span class="va">df</span>, <span class="va">f</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/split.html">unsplit</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Population Income Illiteracy Life.Exp Murder HS.Grad Frost   Area
+Alabama           3615   3624        2.1    69.05   15.1    41.3    20  50708
+Alaska             365   6315        1.5    69.31   11.3    66.7   152 566432
+Arizona           2212   4530        1.8    70.55    7.8    58.1    15 113417
+Arkansas          2110   3378        1.9    70.66   10.1    39.9    65  51945
+California       21198   5114        1.1    71.71   10.3    62.6    20 156361
+Colorado          2541   4884        0.7    72.06    6.8    63.9   166 103766
+Connecticut       3100   5348        1.1    72.48    3.1    56.0   139   4862
+Delaware           579   4809        0.9    70.06    6.2    54.6   103   1982
+Florida           8277   4815        1.3    70.66   10.7    52.6    11  54090
+Georgia           4931   4091        2.0    68.54   13.9    40.6    60  58073
+Hawaii             868   4963        1.9    73.60    6.2    61.9     0   6425
+               Region
+Alabama         South
+Alaska           West
+Arizona          West
+Arkansas        South
+California       West
+Colorado         West
+Connecticut Northeast
+Delaware        South
+Florida         South
+Georgia         South
+Hawaii           West
+ [ reached 'max' / getOption("max.print") -- omitted 39 rows ]</code></pre>
+</div>
+</div>
+</section><section id="stack" class="level3"><h3 class="anchored" data-anchor-id="stack"><code>stack()</code></h3>
+<p><code>stacK()</code> performs like <code><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">tidyr::pivot_longer()</a></code></p>
+<div class="cell">
+<div class="sourceCode" id="cb133"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/stack.html">stack</a></span><span class="op">(</span><span class="va">df</span>, select <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">Population</span>, <span class="va">Income</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   values        ind
+1    3615 Population
+2     365 Population
+3    2212 Population
+4    2110 Population
+5   21198 Population
+6    2541 Population
+7    3100 Population
+8     579 Population
+9    8277 Population
+10   4931 Population
+11    868 Population
+12    813 Population
+13  11197 Population
+14   5313 Population
+15   2861 Population
+16   2280 Population
+17   3387 Population
+18   3806 Population
+19   1058 Population
+20   4122 Population
+21   5814 Population
+22   9111 Population
+23   3921 Population
+24   2341 Population
+25   4767 Population
+26    746 Population
+27   1544 Population
+28    590 Population
+29    812 Population
+30   7333 Population
+31   1144 Population
+32  18076 Population
+33   5441 Population
+34    637 Population
+35  10735 Population
+36   2715 Population
+37   2284 Population
+38  11860 Population
+39    931 Population
+40   2816 Population
+41    681 Population
+42   4173 Population
+43  12237 Population
+44   1203 Population
+45    472 Population
+46   4981 Population
+47   3559 Population
+48   1799 Population
+49   4589 Population
+50    376 Population
+ [ reached 'max' / getOption("max.print") -- omitted 50 rows ]</code></pre>
+</div>
+<div class="sourceCode" id="cb135"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">Population</span>, <span class="va">Income</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">name</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 100 × 2
+   name       value
+   &lt;chr&gt;      &lt;dbl&gt;
+ 1 Population  3615
+ 2 Income      3624
+ 3 Population   365
+ 4 Income      6315
+ 5 Population  2212
+ 6 Income      4530
+ 7 Population  2110
+ 8 Income      3378
+ 9 Population 21198
+10 Income      5114
+# … with 90 more rows</code></pre>
+</div>
+</div>
+<p>But it can also be used for named lists and returns a data frame.</p>
+<div class="cell">
+<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/stack.html">stack</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, y <span class="op">=</span> <span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  values ind
+1      1   x
+2      2   x
+3      3   x
+4      a   y
+5      b   y
+6      c   y
+7      d   y
+8      e   y</code></pre>
+</div>
+</div>
+</section></section></main><!-- /main column --><script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
