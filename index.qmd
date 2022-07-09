@@ -14,6 +14,26 @@ execute:
 options(max.print = 100)
 ```
 
+## Lists and vectors
+
+### Named lists
+
+Lists can hold elements of different types.
+
+```{r}
+list(x = 1:3, y = 4:6)
+list(x = 1:3, y = letters[1:3])
+```
+
+### Named vectors
+
+Different types are coerced to the most general type. Names are recycled.
+
+```{r}
+c(x = 1:3, y = 4:6)
+c(x = 1:3, y = letters[1:3])
+```
+
 ## The apply family of functions
 
 ### `apply()`
@@ -242,6 +262,7 @@ tbl |>
 cut(runif(5), breaks = 2)
 cut(runif(5), breaks = c(0, 0.5, 1))
 cut(runif(5), breaks = c(0, 0.5, 1), labels = FALSE)
+cut(runif(5), breaks = c(0, 0.5, 1), labels = c("Low", "High"))
 
 cut(1:5, breaks = 2)
 cut(1:5, breaks = c(1, 2.5, 5))
