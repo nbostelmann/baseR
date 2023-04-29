@@ -2,9 +2,12 @@
 title: "base R functions compared to purrr and dplyr"
 format:
   html:
+    anchor-sections: false
     code-link: true
     theme: flatly
     toc: true
+    toc-location: left
+    toc-expand: true
 execute:
   warning: false
 ---
@@ -111,13 +114,15 @@ tapply(state.x77[, "Population"], state.region, sum, simplify = FALSE)
 
 ```{r}
 #| echo: false
-funs <- list("apply", "lapply", "sapply", "vapply", "mapply", "tapply")
-args <- setNames(lapply(funs, function(x) names(formals(x))), funs)
+funs <- c("apply", "lapply", "sapply", "vapply", "mapply", "tapply")
+args <- setNames(lapply(funs, \(x) names(formals(x))), funs)
 
-tibble::tibble(f = c("apply", "lapply", "sapply", "vapply", "mapply", "tapply")) |> 
-  dplyr::rowwise() |> 
-  dplyr::mutate(args = list(names(formals(f)))) |> 
-  tidyr::unnest_wider(args) |> 
+tibble::tibble(
+  fun = funs,
+  arg = lapply(funs, \(x) names(formals(x)))
+) |> 
+  tidyr::unnest_wider(col = arg, names_sep = "_") |> 
+  dplyr::mutate(dplyr::across(dplyr::everything(), \(x) tidyr::replace_na(x, ""))) |> 
   knitr::kable()
 ```
 
@@ -146,7 +151,7 @@ setNames(sapply(funs, isGeneric), funs)
 If the first argument is a data frame, the grouping can not have bare column names. Passing the whole data frame applies the function to every column.
 
 ```{r}
-aggregate(df[, -9], by = list(df$Region), FUN = mean)
+aggregate(df[-9], by = list(df$Region), FUN = mean)
 
 tbl |>
   dplyr::group_by(Region) |>
@@ -199,13 +204,13 @@ tbl |>
 
 ```{r}
 by(
-  df[, c("Income", "Life.Exp")],
+  df[c("Income", "Life.Exp")],
   INDICES = df$Region,
   FUN = function(x) sapply(x, mean)
 )
 
 aggregate(
-  df[ , c("Income", "Life.Exp")],
+  df[c("Income", "Life.Exp")],
   by = list(df$Region),
   FUN = mean
 )
